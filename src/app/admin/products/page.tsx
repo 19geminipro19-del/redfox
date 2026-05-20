@@ -186,18 +186,42 @@ export default function AdminProductsPage() {
         ) : (
           <div className="space-y-4">
             {existingProducts.map(product => (
-              <div key={product.id} className="p-4 bg-white rounded-xl shadow-sm border border-gray-200">
-                <div className="flex justify-between items-center">
+              <div key={product.id} className="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+                <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="font-bold text-lg">{product.title}</h3>
+                    <h3 className="font-bold text-xl">{product.title}</h3>
                     <p className="text-sm text-gray-600">SKU: {product.sku} | Category: {product.category}</p>
                   </div>
-                  <div className="font-semibold text-lg">
+                  <div className="font-semibold text-xl text-green-600">
                     ${Number(product.basePrice).toFixed(2)}
                   </div>
                 </div>
-                <div className="mt-2 text-sm text-gray-500">
-                  Variants: {product.variants?.length || 0}
+
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Color Variants ({product.variants?.length || 0})</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {product.variants?.map((variant) => (
+                      <div key={variant.id} className="p-3 bg-gray-50 border rounded-lg">
+                        <p className="font-medium text-sm text-gray-800 mb-2">
+                          {variant.colorName ? variant.colorName : 'Unnamed Color'}
+                        </p>
+                        {variant.images && variant.images.length > 0 ? (
+                          <div className="flex gap-2 overflow-x-auto pb-2">
+                            {variant.images.map((img, idx) => (
+                              <img
+                                key={img.publicId || idx}
+                                src={img.url}
+                                alt={`${variant.colorName} preview`}
+                                className="w-16 h-16 rounded object-cover border border-gray-200 shadow-sm flex-shrink-0"
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-400 italic">No images uploaded</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
