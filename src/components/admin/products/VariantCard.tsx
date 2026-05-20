@@ -11,22 +11,20 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, index, onVari
   const AVAILABLE_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '38', '40', '42', '44'];
 
   const handleSizeToggle = (sizeName: string) => {
-    // 1. Create a deep copy of the existing sizes for THIS variant only
-    const currentSizes = [...variant.sizes];
+    // Deep copy the local sizes array to guarantee isolation
+    const currentSizes = [...(variant.sizes || [])];
     const sizeIndex = currentSizes.findIndex((s) => s.size === sizeName);
 
     if (sizeIndex > -1) {
-      // If size exists, toggle its availability
       currentSizes[sizeIndex].available = !currentSizes[sizeIndex].available;
     } else {
-      // If size doesn't exist in array, push it freshly for this variant
       currentSizes.push({ size: sizeName, stock: 10, available: true });
     }
 
-    // 2. Pass the updated isolated array back up to the parent array context
+    // Direct parent update matching ONLY this component's array index
     onVariantChange({
       ...variant,
-      sizes: currentSizes // Replaces ONLY this variant's sizes array
+      sizes: currentSizes
     }, index);
   };
 
@@ -38,23 +36,21 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, index, onVari
           type="text"
           value={variant.colorName}
           onChange={(e) => onVariantChange({ ...variant, colorName: e.target.value }, index)}
-          className="mt-1 p-2 border rounded w-full"
+          className="mt-1 p-2 border rounded w-full bg-white text-gray-900"
           placeholder="e.g., Peach, Mint Green"
         />
       </div>
 
-      {/* Cloudinary Images Section Specific to this color */}
       <div className="mb-4 bg-white p-3 rounded border">
-        <span className="text-sm font-medium text-gray-600 block mb-2">Cloudinary Media Gallery for {variant.colorName || 'this variant'}</span>
-        {/* Isolated Cloudinary Upload Button & Previews go here */}
+        <span className="text-sm font-medium text-gray-600 block mb-2">Cloudinary Asset Management</span>
+        {/* Cloudinary Dropzone will load here */}
       </div>
 
-      {/* Strict Isolated Size Grid Selection */}
       <div>
-        <span className="text-sm font-medium text-gray-600 block mb-2">Select Available Sizes (Strictly Isolated for this Color)</span>
+        <span className="text-sm font-medium text-gray-600 block mb-2">Available Sizes (Sandbox Mode)</span>
         <div className="grid grid-cols-5 gap-2">
           {AVAILABLE_SIZES.map((size) => {
-            const isChecked = variant.sizes.find((s) => s.size === size)?.available || false;
+            const isChecked = variant.sizes?.find((s) => s.size === size)?.available || false;
             return (
               <label
                 key={size}
@@ -66,7 +62,7 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, index, onVari
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => handleSizeToggle(size)}
-                  className="sr-only" // Hidden checkbox, fully managed by state
+                  className="sr-only"
                 />
                 {size}
               </label>
