@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VariantCard } from '@/components/admin/products/VariantCard';
 import type { Product, ProductVariant } from '@/lib/types';
 import { db } from '@/config/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from 'firebase/firestore';
 
 export default function AdminProductsPage() {
   const [productData, setProductData] = useState<Partial<Product>>({
@@ -16,6 +16,21 @@ export default function AdminProductsPage() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingProducts, setExistingProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        setExistingProducts(data);
+      } catch (error) {
+        console.error("Error fetching existing products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const handleVariantChange = (updatedVariant: ProductVariant, index: number) => {
     const newVariants = [...(productData.variants || [])];
@@ -161,6 +176,34 @@ export default function AdminProductsPage() {
           </button>
         </div>
       </form>
+
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Existing Product Catalog</h2>
+        {existingProducts.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 border-2 border-dashed rounded-xl bg-gray-50">
+            No products found in the catalog.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {existingProducts.map(product => (
+              <div key={product.id} className="p-4 bg-white rounded-xl shadow-sm border border-gray-200">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-lg">{product.title}</h3>
+                    <p className="text-sm text-gray-600">SKU: {product.sku} | Category: {product.category}</p>
+                  </div>
+                  <div className="font-semibold text-lg">
+                    ${Number(product.basePrice).toFixed(2)}
+                  </div>
+                </div>
+                <div className="mt-2 text-sm text-gray-500">
+                  Variants: {product.variants?.length || 0}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
